@@ -45,9 +45,13 @@ filename = "Run_"+timestr
 print(filename)
 
 """## Data Prep"""
+# Data set files
+benign_file = 'function_testing_benign_data.csv'
+malicious_file = 'function_testing_malicious_data.csv'
+
 
 # Read the benign dataset and add a classification column
-df1_benign = pd.read_csv('top_1m_small.csv', index_col=False, header=None, low_memory=False)
+df1_benign = pd.read_csv(benign_file, index_col=False, header=None, low_memory=False)
 df1_benign.drop(columns={0}, inplace=True)
 df1_benign.rename(columns={1:'URLs'}, inplace=True)
 
@@ -59,7 +63,7 @@ df1_benign['classify'] = 0
 #df1_benign = df1_benign.head(847026)
 
 # Read the malicious dataset and add a classification column
-df2_mal = pd.read_csv('filtered_c19_URLs.csv', header=None, low_memory=False)
+df2_mal = pd.read_csv(malicious_file, header=None, low_memory=False)
 df2_mal.rename(columns={0: 'URLs'}, inplace=True)
 
 # Malicious URLs are set to 1 (one)
@@ -161,7 +165,7 @@ ml_model1.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['mae
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2,)
 
 ## Fitting data to the model
-#history = ml_model1.fit(X_train, y_train, batch_size=128, epochs=epochs, validation_data=(X_test, y_test), verbose=1, callbacks=[metrics]) # Training
+history = ml_model1.fit(X_train, y_train, batch_size=128, epochs=epochs, validation_data=(X_test, y_test), verbose=1, callbacks=[metrics]) # Training
 
 # TODO: ml_model1.save()
 # TODO: ml_model1.load()
@@ -172,7 +176,7 @@ out_data = {'y':y_test, 'pred':y_pred, 'confusion_matrix': sklearn.metrics.confu
 print("\n\nConfusion Matrix",sklearn.metrics.confusion_matrix(y_test, y_pred>0.5))
 print("\n\nAccuracy of the model", accuracy_score(y_test, y_pred>0.5)*100)
 
-"""
+
 ## Get training and testing accuracy values
 training_accuracy = history.history['acc']
 test_accuracy = history.history['val_acc']
@@ -296,4 +300,3 @@ plt.legend(loc='best')
 filename_ROC = filename + "_ROC.pdf"
 plt.savefig(filename_ROC, bbox_inches='tight')
 plt.close()
-"""
