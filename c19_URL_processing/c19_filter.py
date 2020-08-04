@@ -1,0 +1,2 @@
+open('filtered_c19_URLs','w').writelines(line for line in open('malicious_c19_URLs') if 'covid' in line)
+open('filtered_c19_URLs','a').writelines(line for line in open('malicious_c19_URLs') if 'corona' in line)
