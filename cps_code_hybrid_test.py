@@ -2,6 +2,9 @@
 Cyberphysical Systems Project - DGA Detection code optimized for GPU
 Created By: Aman Kumar Gupta
 WSU ID: X397J446
+
+Modified By: Alexander Crisler
+WSU ID: S396C237
 """
 
 # Import libraries here
@@ -14,6 +17,7 @@ from numpy import savetxt
 # Tensorflow
 from tensorflow.python.keras.preprocessing import sequence
 from tensorflow.python.keras.models import Sequential
+from tensorflow.python.keras.models import load_model
 from tensorflow.python.keras.layers.core import Dense, Dropout, Activation
 from tensorflow.python.keras.layers.embeddings import Embedding
 from tensorflow.python.keras.layers.recurrent import LSTM
@@ -42,9 +46,12 @@ filename = "Run_"+timestr
 print(filename)
 
 """## Data Prep"""
+# Data set files
+benign_file = 'n-malicious_n-c19_URLs - Copy.csv'
+malicious_file = 'malicious_n-c19_URLs - Copy.csv'
 
 # Read the benign dataset and add a classification column
-df1_benign = pd.read_csv('n-malicious_n-c19_URLs.csv', index_col=False, header=None, low_memory=False)
+df1_benign = pd.read_csv(benign_file, index_col=False, header=None, low_memory=False)
 df1_benign.drop(columns={0}, inplace=True)
 df1_benign.rename(columns={1:'URLs'}, inplace=True)
 
@@ -56,7 +63,7 @@ df1_benign['classify'] = 0
 #df1_benign = df1_benign.head(847026)
 
 # Read the malicious dataset and add a classification column
-df2_mal = pd.read_csv('malicious_n-c19_URLs.csv', header=None, low_memory=False)
+df2_mal = pd.read_csv(malicious_file, header=None, low_memory=False)
 df2_mal.rename(columns={0: 'URLs'}, inplace=True)
 
 # Malicious URLs are set to 1 (one)
@@ -101,7 +108,7 @@ class ModelMetrics(Callback):
     self.f1_scores=[]
   def on_epoch_end(self, batch, logs={}):
     
-    y_val_pred=self.model.predict(X_test)
+    y_val_pred=self.model.predict_classes(X_test)
    
     _precision,_recall,_f1,_sample=precision_recall_fscore_support(y_test,y_val_pred)
     
@@ -114,7 +121,8 @@ metrics = ModelMetrics()
 
 # ML model ----------------------------------------------
 
-epochs = 50
+epochs = 10
+#ml_model1 = Sequential()
 
 ### CNN Code
 text_input = Input(shape = (maxlen,), name='text_input')
@@ -141,28 +149,37 @@ for name in range(0,1):
   dense = Dense(1)(drop)
   out = Activation("sigmoid")(dense)
   outputs.append(out)
-ml_model1 = Model(inputs=text_input, outputs=outputs)
+#ml_model1.inputs=text_input
+#ml_model1.outputs=outputs
 
-ml_model1.compile(loss='binary_crossentropy',
-    optimizer='rmsprop',
-    metrics=['accuracy', 'mae']
-    )
+### LSTM Code
+#ml_model1.add(Embedding(max_features, 128, input_length=maxlen))
+#ml_model1.add(LSTM(128))
+#ml_model1.add(Dropout(0.5))
+#ml_model1.add(Dense(1))
+#ml_model1.add(Activation('sigmoid'))
+
+#ml_model1.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['mae', 'acc'])
 
 ## Splitting the test and train dataset
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2,)
 
 ## Fitting data to the model
-history = ml_model1.fit(X_train, y_train, batch_size=128, epochs=epochs, validation_data=(X_test, y_test), verbose=1)
+#history = ml_model1.fit(X_train, y_train, batch_size=128, epochs=epochs, validation_data=(X_test, y_test), verbose=1, callbacks=[metrics]) # Training
 
-y_pred = ml_model1.predict(X_test)
+# TODO: ml_model1.load()
+ml_model1 = load_model('testing_model')
+
+y_pred = ml_model1.predict(X_test) # Testing
 out_data = {'y':y_test, 'pred':y_pred, 'confusion_matrix': sklearn.metrics.confusion_matrix(y_test, y_pred>0.5)}
 
 print("\n\nConfusion Matrix",sklearn.metrics.confusion_matrix(y_test, y_pred>0.5))
 print("\n\nAccuracy of the model", accuracy_score(y_test, y_pred>0.5)*100)
 
+"""
 ## Get training and testing accuracy values
-training_accuracy = history.history['accuracy']
-test_accuracy = history.history['val_accuracy']
+training_accuracy = history.history['acc']
+test_accuracy = history.history['val_acc']
 
 ## Get training and testing loss values
 training_loss = history.history['loss']
@@ -171,6 +188,32 @@ test_loss = history.history['val_loss']
 ## Get training and testing MAE values
 training_mae = history.history['mae']
 test_mae = history.history['val_mae']
+
+## Get training and testing F1_score
+training_f1_score = []
+test_f1_score = []
+for item in metrics.f1_scores:
+  training_f1_score.append(item[0])
+  test_f1_score.append(item[1])
+
+## Get training and testing Precision
+training_precision = []
+test_precision = []
+for item in metrics.precisions:
+  training_precision.append(item[0])
+  test_precision.append(item[1])
+
+## Get training and testing Recall
+training_recall = []
+test_recall = []
+for item in metrics.recalls:
+  training_recall.append(item[0])
+  test_recall.append(item[1])
+
+## Getting the ROC Curve
+y_pred_keras = ml_model1.predict(X_test).ravel()
+fpr_keras, tpr_keras, thresholds_keras = roc_curve(y_test, y_pred_keras)
+auc_keras = auc(fpr_keras, tpr_keras)
 
 ## Visualize loss history
 # Plot training & validation accuracy values
@@ -208,3 +251,53 @@ plt.legend(['Train', 'Test'], loc='upper left')
 filename_mae = filename + "_MAE.pdf"
 plt.savefig(filename_mae, bbox_inches='tight')
 plt.close()
+
+# Plot training & validation F1-score values
+plt.plot(training_f1_score)
+plt.plot(test_f1_score)
+plt.title('Model F1-score')
+plt.ylabel('F1-score')
+plt.xlabel('Epoch')
+plt.legend(['Train', 'Test'], loc='upper left')
+# plt.show()
+filename_f1_score = filename + "_F1_score.pdf"
+plt.savefig(filename_f1_score, bbox_inches='tight')
+plt.close()
+
+# Plot training & validation Precision values
+plt.plot(training_precision)
+plt.plot(test_precision)
+plt.title('Model Precision')
+plt.ylabel('Precision')
+plt.xlabel('Epoch')
+plt.legend(['Train', 'Test'], loc='upper left')
+# plt.show()
+filename_precision = filename + "_Precision.pdf"
+plt.savefig(filename_precision, bbox_inches='tight')
+plt.close()
+
+# Plot training & validation Recall values
+plt.plot(training_recall)
+plt.plot(test_recall)
+plt.title('Model Recall')
+plt.ylabel('Recall')
+plt.xlabel('Epoch')
+plt.legend(['Train', 'Test'], loc='upper left')
+# plt.show()
+filename_recall = filename + "_Recall.pdf"
+plt.savefig(filename_recall, bbox_inches='tight')
+plt.close()
+
+## Plotting the ROC curve
+# plt.figure(1)
+plt.plot([0, 1], [0, 1], 'k--')
+plt.plot(fpr_keras, tpr_keras, label='Keras (area = {:.3f})'.format(auc_keras))
+plt.xlabel('False positive rate')
+plt.ylabel('True positive rate')
+plt.title('ROC curve')
+plt.legend(loc='best')
+# plt.show()
+filename_ROC = filename + "_ROC.pdf"
+plt.savefig(filename_ROC, bbox_inches='tight')
+plt.close()
+"""

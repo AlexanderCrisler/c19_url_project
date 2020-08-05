@@ -46,9 +46,8 @@ print(filename)
 
 """## Data Prep"""
 # Data set files
-benign_file = 'function_testing_benign_data.csv'
-malicious_file = 'function_testing_malicious_data.csv'
-
+benign_file = 'n-malicious_n-c19_URLs - Copy.csv'
+malicious_file = 'malicious_n-c19_URLs - Copy.csv'
 
 # Read the benign dataset and add a classification column
 df1_benign = pd.read_csv(benign_file, index_col=False, header=None, low_memory=False)
@@ -167,10 +166,11 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2,)
 ## Fitting data to the model
 history = ml_model1.fit(X_train, y_train, batch_size=128, epochs=epochs, validation_data=(X_test, y_test), verbose=1, callbacks=[metrics]) # Training
 
-# TODO: ml_model1.save()
-# TODO: ml_model1.load()
+## Saving the model
+ml_model1.save('testing_model')
 
-y_pred = ml_model1.predict(X_test) # Testing
+## Testing the model
+y_pred = ml_model1.predict(X_test) 
 out_data = {'y':y_test, 'pred':y_pred, 'confusion_matrix': sklearn.metrics.confusion_matrix(y_test, y_pred>0.5)}
 
 print("\n\nConfusion Matrix",sklearn.metrics.confusion_matrix(y_test, y_pred>0.5))
