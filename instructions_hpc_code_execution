@@ -9,4 +9,4 @@ export PYTHONDONTWRITEBYTECODE=1
 python /path_to_python_code_file/cps_project_code.py
 
 2. Run the following command on terminal.
-sbatch --time=06:00:00 --mem-per-cpu=2G --cpus-per-task=16 --ntasks=1 --nodes=1 --gres=gpu:1 ./start.sh
+sbatch --time=00:30:00 --mem-per-cpu=2G --cpus-per-task=16 --ntasks=1 --nodes=1 --gres=gpu:1 ./start.sh
