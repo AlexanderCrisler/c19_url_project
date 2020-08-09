@@ -47,8 +47,8 @@ print(filename)
 """## Data Prep"""
 # Data set files
 benign_file = 'n-malicious_n-c19_URLs.csv'
-malicious_file = 'malicious_c19_URLs.csv'
-save_model = 'n-c19_model'
+malicious_file = 'malicious_n-c19_URLs.csv'
+save_model = 'n-c19_n-c19_model'
 
 # Read the benign dataset and add a classification column
 df1_benign = pd.read_csv(benign_file, index_col=False, header=None, low_memory=False)
