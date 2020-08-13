@@ -46,8 +46,14 @@ print(filename)
 
 """## Data Prep"""
 # Data set files
+<<<<<<< HEAD
 benign_file = 'testing_benign_URLs.csv'
 malicious_file = 'testing_malicious_URLs.csv'
+=======
+benign_file = 'n-malicious_n-c19_URLs.csv'
+malicious_file = 'malicious_n-c19_URLs.csv'
+save_model = 'n-c19_n-c19_model'
+>>>>>>> 9be4044206ee640d5426d82bb2f24054bc3cf07f
 
 # Read the benign dataset and add a classification column
 df1_benign = pd.read_csv(benign_file, index_col=False, header=None, low_memory=False)
@@ -167,7 +173,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2,)
 history = ml_model1.fit(X_train, y_train, batch_size=128, epochs=epochs, validation_data=(X_test, y_test), verbose=1, callbacks=[metrics]) # Training
 
 ## Saving the model
-ml_model1.save('testing_model')
+ml_model1.save(save_model)
 
 ## Testing the model
 y_pred = ml_model1.predict(X_test) 
