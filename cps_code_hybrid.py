@@ -46,8 +46,8 @@ print(filename)
 
 """## Data Prep"""
 # Data set files
-benign_file = 'n-malicious_n-c19_URLs - Copy.csv'
-malicious_file = 'malicious_n-c19_URLs - Copy.csv'
+benign_file = 'testing_benign_URLs.csv'
+malicious_file = 'testing_malicious_URLs.csv'
 
 # Read the benign dataset and add a classification column
 df1_benign = pd.read_csv(benign_file, index_col=False, header=None, low_memory=False)
@@ -62,7 +62,7 @@ df1_benign['classify'] = 0
 #df1_benign = df1_benign.head(847026)
 
 # Read the malicious dataset and add a classification column
-df2_mal = pd.read_csv(malicious_file, header=None, low_memory=False)
+df2_mal = pd.read_csv('testing_malicious_URLs.csv', header=None, low_memory=False)
 df2_mal.rename(columns={0: 'URLs'}, inplace=True)
 
 # Malicious URLs are set to 1 (one)
